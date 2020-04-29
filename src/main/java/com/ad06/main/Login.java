@@ -3,10 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.ad06;
+package com.ad06.main;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
 
 /**
  *
@@ -14,18 +16,22 @@ import java.awt.Toolkit;
  */
 public class Login extends javax.swing.JFrame {
 
+    private App app;
+
     /**
      * Creates new form MainWindow
+     *
+     * @param app
      */
-    public Login() {
+    public Login(App app) {
+        this.app = app;
         initComponents();
-        
-         Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+
+        Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
         int x = d.width / 2;
         int y = d.height / 2;
         this.setLocation(x - this.getWidth() / 2, y - this.getHeight() / 2);
-        
-        
+
         this.jLabelLoginIncorrecto.setVisible(false);
     }
 
@@ -61,6 +67,11 @@ public class Login extends javax.swing.JFrame {
 
         jButtonRegistrarse.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         jButtonRegistrarse.setText("Registrarse");
+        jButtonRegistrarse.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonRegistrarseActionPerformed(evt);
+            }
+        });
 
         jTextFieldUsuario.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
 
@@ -140,45 +151,32 @@ public class Login extends javax.swing.JFrame {
     }//GEN-LAST:event_jPasswordFieldPassActionPerformed
 
     private void jButtonEntrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEntrarActionPerformed
-       // TODO add your handling code here:
-       this.jLabelLoginIncorrecto.setVisible(true);
+        if (app.authenticateUser()) {
+            Main main = new Main(this,true);
+            main.setVisible(true);
+        } else {
+            this.jLabelLoginIncorrecto.setVisible(true);
+        }
     }//GEN-LAST:event_jButtonEntrarActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
+    private void jButtonRegistrarseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRegistrarseActionPerformed
+        // TODO add your handling code here:
+        Register registro = new Register(this, true);
+        registro.setVisible(true);
+    }//GEN-LAST:event_jButtonRegistrarseActionPerformed
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Login().setVisible(true);
-            }
-        });
+    public JTextField getjTextFieldUsuario() {
+        return jTextFieldUsuario;
     }
+
+    public JPasswordField getjPasswordFieldPass() {
+        return jPasswordFieldPass;
+    }
+
+    public App getApp() {
+        return app;
+    }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonEntrar;
