@@ -5,11 +5,17 @@
  */
 package com.ad06.main;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.html.HTML;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.util.List;
+import javax.swing.JEditorPane;
+import javax.swing.JFrame;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 
@@ -17,56 +23,45 @@ import javax.swing.text.html.HTMLEditorKit;
  *
  * @author Manuel
  */
-public class Main extends javax.swing.JDialog {
+public class Main extends javax.swing.JFrame implements HyperlinkListener, WindowListener {
 
-    private Login login;
-    
+    private final Login login;
+
+    private boolean entered;
+    private String linkDescription;
+    private String user;
+    private int page, totalPages;
+
     /**
      * Creates new form Main
      *
      * @param parent
      * @param modal
+     * @param user
      */
-    public Main(java.awt.Frame parent, boolean modal) {
-        super(parent, modal);
+    public Main(java.awt.Frame parent, String user) {
+
         this.setLocation(parent.getLocation());
         this.login = (Login) parent;
+        this.user = user;
         initComponents();
-        
-        this.jTextPane1.setText("<h3><strong>Manuel Varela&nbsp; @manu</strong></h3>\n" +
-"<p>Este &eacute; un exemplo de miniTwitter #MiniTwitter #AccesoADatos</p>\n" +
-"<p>18:33 22/04/220 CET</p>\n" +
-"<h3><strong>Manuel Varela&nbsp; @manu</strong></h3>\n" +
-"<p>Este &eacute; un exemplo de miniTwitter #MiniTwitter #AccesoADatos</p>\n" +
-"<p>18:33 22/04/220 CET</p>\n" +
-"<h3><strong>Manuel Varela&nbsp; @manu</strong></h3>\n" +
-"<p>Este &eacute; un exemplo de miniTwitter #MiniTwitter #AccesoADatos</p>\n" +
-"<p>18:33 22/04/220 CET</p>\n" +
-"<h3><strong>Manuel Varela&nbsp; @manu</strong></h3>\n" +
-"<p>Este &eacute; un exemplo de miniTwitter #MiniTwitter #AccesoADatos</p>\n" +
-"<p>18:33 22/04/220 CET</p>\n" +
-"<h3><strong>Manuel Varela&nbsp; @manu</strong></h3>\n" +
-"<p>Este &eacute; un exemplo de miniTwitter #MiniTwitter #AccesoADatos</p>\n" +
-"<p>18:33 22/04/220 CET</p>\n" +
-"<h3><strong>Manuel Varela&nbsp; @manu</strong></h3>\n" +
-"<p>Este &eacute; un exemplo de miniTwitter #MiniTwitter #AccesoADatos</p>\n" +
-"<p>18:33 22/04/220 CET</p>\n" +
-"<h3><strong>Manuel Varela&nbsp; @manu</strong></h3>\n" +
-"<p>Este &eacute; un exemplo de miniTwitter #MiniTwitter #AccesoADatos</p>\n" +
-"<p>18:33 22/04/220 CET</p>\n" +
-"<p>&nbsp;</p>");
-        
-        /*try {
-        
+
+        setPages();
+
+        updatePageButtons();
+
+        jEditorPane1.setEditable(false);
+
         HTMLEditorKit kit = new HTMLEditorKit();
         HTMLDocument doc = new HTMLDocument();
-        this.jTextPane1.setEditorKit(kit);
-        this.jTextPane1.setDocument(doc);
-        kit.insertHTML(doc, doc.getLength(), "<b>hello", 0, 0, HTML.Tag.B);
-        kit.insertHTML(doc, doc.getLength(), "<font color='red'><u>world</u></font>", 0, 0, null);
-        } catch (BadLocationException | IOException ex) {
-        Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
+        this.jEditorPane1.setEditorKit(kit);
+        this.jEditorPane1.setText(getAllTweets());
+
+        jEditorPane1.addHyperlinkListener(this);
+
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        this.addWindowListener(this);
+
     }
 
     /**
@@ -79,22 +74,83 @@ public class Main extends javax.swing.JDialog {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTextPane1 = new javax.swing.JTextPane();
+        jEditorPane1 = new javax.swing.JEditorPane();
+        jButtonNextPage = new javax.swing.JButton();
+        jButtonPreviousPage = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
-        jMenu2 = new javax.swing.JMenu();
+        jMenuMensajes = new javax.swing.JMenu();
+        jMenuItemVerTodosMensajes = new javax.swing.JMenuItem();
+        jMenuItemVerMensajesDeLosQueSigo = new javax.swing.JMenuItem();
+        jMenuItemRedactarMensaje = new javax.swing.JMenuItem();
+        jMenuItemSalir = new javax.swing.JMenuItem();
+        jMenuBuscar = new javax.swing.JMenu();
+        jMenuItem1 = new javax.swing.JMenuItem();
+        jMenuItem2 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setResizable(false);
 
-        jTextPane1.setEditable(false);
-        jTextPane1.setContentType("text/html"); // NOI18N
-        jScrollPane1.setViewportView(jTextPane1);
+        jEditorPane1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jEditorPane1MouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(jEditorPane1);
 
-        jMenu1.setText("Mensajes");
-        jMenuBar1.add(jMenu1);
+        jButtonNextPage.setText(">>");
+        jButtonNextPage.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonNextPageActionPerformed(evt);
+            }
+        });
 
-        jMenu2.setText("Buscar");
-        jMenuBar1.add(jMenu2);
+        jButtonPreviousPage.setText("<<");
+        jButtonPreviousPage.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonPreviousPageActionPerformed(evt);
+            }
+        });
+
+        jMenuMensajes.setText("Mensajes");
+
+        jMenuItemVerTodosMensajes.setText("Ver todos los mensajes");
+        jMenuItemVerTodosMensajes.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemVerTodosMensajesActionPerformed(evt);
+            }
+        });
+        jMenuMensajes.add(jMenuItemVerTodosMensajes);
+
+        jMenuItemVerMensajesDeLosQueSigo.setText("Ver los mensajes de las personas que sigo");
+        jMenuMensajes.add(jMenuItemVerMensajesDeLosQueSigo);
+
+        jMenuItemRedactarMensaje.setText("Redactar un mensaje");
+        jMenuItemRedactarMensaje.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemRedactarMensajeActionPerformed(evt);
+            }
+        });
+        jMenuMensajes.add(jMenuItemRedactarMensaje);
+
+        jMenuItemSalir.setText("Salir");
+        jMenuItemSalir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemSalirActionPerformed(evt);
+            }
+        });
+        jMenuMensajes.add(jMenuItemSalir);
+
+        jMenuBar1.add(jMenuMensajes);
+
+        jMenuBuscar.setText("Buscar");
+
+        jMenuItem1.setText("Buscar persona");
+        jMenuBuscar.add(jMenuItem1);
+
+        jMenuItem2.setText("Buscar #hashtag");
+        jMenuBuscar.add(jMenuItem2);
+
+        jMenuBar1.add(jMenuBuscar);
 
         setJMenuBar(jMenuBar1);
 
@@ -102,22 +158,218 @@ public class Main extends javax.swing.JDialog {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 327, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 335, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButtonPreviousPage, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(jButtonNextPage, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(93, 93, 93))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 595, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 596, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButtonNextPage)
+                    .addComponent(jButtonPreviousPage)))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jButtonPreviousPageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPreviousPageActionPerformed
+        // TODO add your handling code here:
+        page--;
+        updateTweets();
+        updatePageButtons();
+        System.out.println(page);
+    }//GEN-LAST:event_jButtonPreviousPageActionPerformed
+
+    private void jEditorPane1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jEditorPane1MouseClicked
+        // TODO add your handling code here:
+        if (entered) {
+            System.out.println("se clicado en el enlace " + linkDescription);
+        } else {
+            System.out.println("NO se clicado en el enlace");
+
+        }
+    }//GEN-LAST:event_jEditorPane1MouseClicked
+
+    private void jMenuItemRedactarMensajeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemRedactarMensajeActionPerformed
+        // TODO add your handling code here:
+        NewTweet newTweet = new NewTweet(this, true);
+        newTweet.setVisible(true);
+    }//GEN-LAST:event_jMenuItemRedactarMensajeActionPerformed
+
+    private void jMenuItemSalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSalirActionPerformed
+        // TODO add your handling code here:
+        login.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_jMenuItemSalirActionPerformed
+
+    private void jMenuItemVerTodosMensajesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemVerTodosMensajesActionPerformed
+        page = 1;
+        update();
+
+    }//GEN-LAST:event_jMenuItemVerTodosMensajesActionPerformed
+
+    private void jButtonNextPageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNextPageActionPerformed
+        // TODO add your handling code here:
+        page++;
+        updateTweets();
+        updatePageButtons();
+        System.out.println(page);
+
+    }//GEN-LAST:event_jButtonNextPageActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
+    private javax.swing.JButton jButtonNextPage;
+    private javax.swing.JButton jButtonPreviousPage;
+    private javax.swing.JEditorPane jEditorPane1;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenu jMenuBuscar;
+    private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItemRedactarMensaje;
+    private javax.swing.JMenuItem jMenuItemSalir;
+    private javax.swing.JMenuItem jMenuItemVerMensajesDeLosQueSigo;
+    private javax.swing.JMenuItem jMenuItemVerTodosMensajes;
+    private javax.swing.JMenu jMenuMensajes;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextPane jTextPane1;
     // End of variables declaration//GEN-END:variables
+
+    private String getAllTweets() {
+
+        StringBuilder html = new StringBuilder();
+
+        DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+
+        
+        
+        try (DBCursor cursor = colMensaje.find().sort(new BasicDBObject().append("date", -1)).skip((page-1)*5).limit(5)) {
+            
+            while (cursor.hasNext()) {
+                DBObject documento = cursor.next();
+                DBObject userObject = (DBObject) documento.get("user");
+                html.append(tweetBuilder(
+                        userObject.get("nome").toString(),
+                        userObject.get("username").toString(),
+                        documento.get("text").toString(),
+                        documento.get("date").toString()));
+
+            }
+        }
+
+        return html.toString();
+    }
+
+    private String tweetBuilder(String name, String username, String text, String date) {
+        return "<h3>\n"
+                + "	<strong> \n"
+                + "		" + name + " @" + username + " \n"
+                + "	</strong>\n"
+                + "</h3>\n"
+                + "<p>\n"
+                + "	" + text + "\n"
+                + "</p>\n"
+                + "<p>\n"
+                + "	" + date + " CET\n"
+                + "</p>\n"
+                + "	<a href=\"@" + username + "\">Seguir a @" + username + "</a>\n"
+                + "<p>\n"
+                + "	&nbsp;\n"
+                + "</p>";
+
+    }
+
+    void updateTweets() {
+        this.jEditorPane1.setText(getAllTweets());
+    }
+
+    private void setPages() {
+        DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+        try (DBCursor cursor = colMensaje.find()) {
+            totalPages = (int) ((cursor.count() - 1) / 5) + 1;
+            System.out.println("El total de tweets es " + cursor.count() + " y el total de páginas es " + totalPages);
+            page = 1;
+        }
+
+    }
+
+    void updatePageButtons() {
+        if (page == 1) {
+            this.jButtonPreviousPage.setEnabled(false);
+        } else {
+            this.jButtonPreviousPage.setEnabled(true);
+        }
+        
+        if (page == totalPages) {
+            this.jButtonNextPage.setEnabled(false);
+        } else {
+            this.jButtonNextPage.setEnabled(true);
+        }
+
+    }
+    
+    public void update(){
+        setPages();
+        updateTweets();
+        updatePageButtons();
+    }
+
+    @Override
+    public void hyperlinkUpdate(HyperlinkEvent e) {
+        JEditorPane pane = (JEditorPane) e.getSource();
+        linkDescription = e.getDescription();
+        if (e.getEventType() == HyperlinkEvent.EventType.ENTERED) {
+            entered = true;
+        } else if (e.getEventType() == HyperlinkEvent.EventType.EXITED) {
+            entered = false;
+        }
+    }
+
+    @Override
+    public void windowOpened(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowClosing(WindowEvent e) {
+        login.setVisible(true);
+        this.dispose();
+    }
+
+    @Override
+    public void windowClosed(WindowEvent e) {
+    }
+
+    @Override
+    public void windowIconified(WindowEvent e) {
+    }
+
+    @Override
+    public void windowDeiconified(WindowEvent e) {
+    }
+
+    @Override
+    public void windowActivated(WindowEvent e) {
+    }
+
+    @Override
+    public void windowDeactivated(WindowEvent e) {
+    }
+
+    public Login getLogin() {
+        return login;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
 }

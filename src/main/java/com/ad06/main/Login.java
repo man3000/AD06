@@ -151,9 +151,10 @@ public class Login extends javax.swing.JFrame {
     }//GEN-LAST:event_jPasswordFieldPassActionPerformed
 
     private void jButtonEntrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEntrarActionPerformed
-        if (app.authenticateUser()) {
-            Main main = new Main(this,true);
+        if (app.authenticateUser(this.jTextFieldUsuario.getText(), new String(jPasswordFieldPass.getPassword()))) {
+            Main main = new Main(this, this.jTextFieldUsuario.getText());
             main.setVisible(true);
+            this.setVisible(false);
         } else {
             this.jLabelLoginIncorrecto.setVisible(true);
         }
@@ -188,4 +189,8 @@ public class Login extends javax.swing.JFrame {
     private javax.swing.JPasswordField jPasswordFieldPass;
     private javax.swing.JTextField jTextFieldUsuario;
     // End of variables declaration//GEN-END:variables
+
+    void hideIncorrectUserPasswordSign() {
+        this.jLabelLoginIncorrecto.setVisible(false);
+    }
 }

@@ -222,7 +222,9 @@ public class Register extends javax.swing.JDialog {
         } else {
             JOptionPane.showConfirmDialog(this, "Usuario creado con éxito", "Información", JOptionPane.CLOSED_OPTION, JOptionPane.INFORMATION_MESSAGE);
             this.login.getjTextFieldUsuario().setText(this.jTextFieldUsuario.getText());
-            this.login.getjPasswordFieldPass().setText(Arrays.toString(this.jPasswordFieldPass.getPassword()));
+            this.login.getjPasswordFieldPass().setText(new String(this.jPasswordFieldPass.getPassword()));
+            this.login.hideIncorrectUserPasswordSign();
+            this.login.getApp().createUser(jTextFieldNombre.getText(), jTextFieldUsuario.getText(), new String(jPasswordFieldPass.getPassword()));
             this.dispose();
         }
     }//GEN-LAST:event_jButtonRegistrarseActionPerformed
