@@ -227,14 +227,15 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         // TODO add your handling code here:
         if (enteredLink) {
             System.out.println("se clicado en el enlace " + userLink);
-            
+
             int option = JOptionPane.showConfirmDialog(this, "Desea seguir al usuario " + userLink, "Confirmación", JOptionPane.OK_CANCEL_OPTION);
-            
+
             if (option == JOptionPane.OK_OPTION) {
                 insertFollows(userLink);
+                this.follows = getFollows();
+
             }
-            
-            
+
         } else {
             System.out.println("NO se clicado en el enlace");
 
@@ -277,8 +278,14 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
 
     private void jMenuItemVerMensajesDeLosQueSigoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemVerMensajesDeLosQueSigoActionPerformed
         // TODO add your handling code here:
-        currentDisplay = Main.FOLLOWSTWEETS;
-        updateAll();
+
+        if (follows == null) {
+            JOptionPane.showMessageDialog(this, "El usuario no sigue a nadie.", "Error", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            currentDisplay = Main.FOLLOWSTWEETS;
+            updateAll();
+        }
+
     }//GEN-LAST:event_jMenuItemVerMensajesDeLosQueSigoActionPerformed
 
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
@@ -320,7 +327,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                 + "\n"
                 + "<body style=\"background-color: #e6f3ff; padding-left: 10px; padding: 10px;\">");
 
-        DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+        DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaxe");
 
         try (DBCursor cursor = colMensaje.find().sort(new BasicDBObject().append("date", -1)).skip((page - 1) * 5).limit(5)) {
 
@@ -350,7 +357,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                 + "\n"
                 + "<body style=\"background-color: #e6f3ff; padding-left: 10px; padding: 10px;\">");
 
-        DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+        DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaxe");
 
         Bson filter = Filters.in("user.username", follows);
 
@@ -386,7 +393,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                 + "\n"
                 + "<body style=\"background-color: #e6f3ff; padding-left: 10px; padding: 10px;\">");
 
-        DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+        DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaxe");
 
         Bson filter = Filters.eq("user.username", user);
 
@@ -420,7 +427,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                 + "\n"
                 + "<body style=\"background-color: #e6f3ff; padding-left: 10px; padding: 10px;\">");
 
-        DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+        DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaxe");
 
         Bson filter = Filters.eq("hashtags", searchHashTag);
 
@@ -485,7 +492,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
 
         switch (currentDisplay) {
             case Main.ALLTWEETS: {
-                DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+                DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaxe");
                 try (DBCursor cursor = colMensaje.find()) {
                     totalPages = (int) ((cursor.count() - 1) / 5) + 1;
                     System.out.println("El total de tweets es " + cursor.count() + " y el total de páginas es " + totalPages);
@@ -494,7 +501,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                 break;
             }
             case Main.FOLLOWSTWEETS: {
-                DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+                DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaxe");
                 Bson filter = Filters.in("user.username", follows);
                 DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
                 try (DBCursor cursor = colMensaje.find(query)) {
@@ -505,7 +512,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                 break;
             }
             case Main.USERTWEETS: {
-                DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+                DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaxe");
                 Bson filter = Filters.eq("user.username", user);
                 DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
                 try (DBCursor cursor = colMensaje.find(query)) {
@@ -515,7 +522,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                 }
             }
             case Main.HASHTAGSEARCH: {
-                DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+                DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaxe");
                 Bson filter = Filters.eq("hashtags", this.searchHashTag);
                 DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
                 try (DBCursor cursor = colMensaje.find(query)) {
@@ -576,11 +583,11 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         return follows = (List<String>) document.get("follows");
 
     }
-    
+
     private void insertFollows(String userLink) {
-        
+
         DBCollection colUsuario = login.getApp().getDatabase().getCollection("usuario");
-        
+
         Bson filterUp = Filters.eq("username", user);
         DBObject queryUp = new BasicDBObject(filterUp.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
 
@@ -588,9 +595,8 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         DBObject update = new BasicDBObject(updateAux.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
 
         colUsuario.update(queryUp, update);
-        
+
     }
-    
 
     @Override
     public void windowOpened(WindowEvent e) {
@@ -638,7 +644,5 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
     public void setCurrentDisplay(int currentDisplay) {
         this.currentDisplay = currentDisplay;
     }
-
-    
 
 }

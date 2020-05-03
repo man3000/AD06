@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.mongodb.*;
 import com.mongodb.client.model.Filters;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
@@ -91,8 +93,11 @@ public class App {
 
         }
 
-        this.dbURI = "mongodb://" + datosConexion.address + ":" + datosConexion.port;
+       
+        this.dbURI = "mongodb://"+datosConexion.username+":"+datosConexion.password+"@"+datosConexion.address+":"+datosConexion.port+"/"+datosConexion.dbname+"?retryWrites=false";
+        //this.dbURI = "mongodb://" + datosConexion.address + ":" + datosConexion.port;
 
+        
         MongoClient mongoClient = new MongoClient(new MongoClientURI(this.dbURI));
 
         database = mongoClient.getDB(datosConexion.dbname);
@@ -154,12 +159,12 @@ public class App {
 
         Pattern pattern = Pattern.compile("#\\w*");
         Matcher matcher = pattern.matcher(tweetText);
-        
+
         while (matcher.find()) {
             hashtags.add(matcher.group());
         }
 
-        DBCollection colMensaje = database.getCollection("mensaje");
+        DBCollection colMensaje = database.getCollection("mensaxe");
         DBCollection colUsuario = database.getCollection("usuario");
 
         DBObject query = new BasicDBObject("username", username);
@@ -167,14 +172,13 @@ public class App {
 
         name = document.get("nome").toString();
 
-        DBObject mensaje = new BasicDBObject()
+        DBObject mensaxe = new BasicDBObject()
                 .append("text", tweetText)
                 .append("user", new BasicDBObject().append("nome", name).append("username", username))
-                .append("date", date)
+                .append("date", new Date())
                 .append("hashtags", hashtags);
 
-        colMensaje.insert(mensaje);        
-        
+        colMensaje.insert(mensaxe);
 
     }
 }
