@@ -5,31 +5,46 @@
  */
 package com.ad06.main;
 
+import com.ad06.util.HTMLEditorKitCustom;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.List;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLEditorKit;
+import org.bson.BsonDocument;
+import org.bson.conversions.Bson;
 
 /**
  *
  * @author Manuel
  */
-public class Main extends javax.swing.JFrame implements HyperlinkListener, WindowListener {
+public final class Main extends javax.swing.JFrame implements HyperlinkListener, WindowListener {
+
+    private static final int ALLTWEETS = 1;
+    private static final int FOLLOWSTWEETS = 2;
+    public static final int USERTWEETS = 3;
+    private static final int HASHTAGSEARCH = 4;
+
+    private int currentDisplay;
 
     private final Login login;
 
-    private boolean entered;
-    private String linkDescription;
+    private boolean enteredLink;
+    private String userLink;
     private String user;
+    private String searchUser;
+    private String searchHashTag;
+    private List<String> follows;
     private int page, totalPages;
 
     /**
@@ -44,7 +59,13 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
         this.setLocation(parent.getLocation());
         this.login = (Login) parent;
         this.user = user;
+
+        this.follows = getFollows();
+        System.out.println("A los que sigue son " + follows);
+
         initComponents();
+
+        this.currentDisplay = Main.ALLTWEETS;
 
         setPages();
 
@@ -52,10 +73,9 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
 
         jEditorPane1.setEditable(false);
 
-        HTMLEditorKit kit = new HTMLEditorKit();
-        HTMLDocument doc = new HTMLDocument();
-        this.jEditorPane1.setEditorKit(kit);
-        this.jEditorPane1.setText(getAllTweets());
+        this.jEditorPane1.setEditorKit(new HTMLEditorKitCustom());
+
+        updateAll();
 
         jEditorPane1.addHyperlinkListener(this);
 
@@ -122,6 +142,11 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
         jMenuMensajes.add(jMenuItemVerTodosMensajes);
 
         jMenuItemVerMensajesDeLosQueSigo.setText("Ver los mensajes de las personas que sigo");
+        jMenuItemVerMensajesDeLosQueSigo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemVerMensajesDeLosQueSigoActionPerformed(evt);
+            }
+        });
         jMenuMensajes.add(jMenuItemVerMensajesDeLosQueSigo);
 
         jMenuItemRedactarMensaje.setText("Redactar un mensaje");
@@ -145,9 +170,19 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
         jMenuBuscar.setText("Buscar");
 
         jMenuItem1.setText("Buscar persona");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
         jMenuBuscar.add(jMenuItem1);
 
         jMenuItem2.setText("Buscar #hashtag");
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem2ActionPerformed(evt);
+            }
+        });
         jMenuBuscar.add(jMenuItem2);
 
         jMenuBar1.add(jMenuBuscar);
@@ -158,15 +193,13 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 335, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(132, Short.MAX_VALUE)
                 .addComponent(jButtonPreviousPage, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(jButtonNextPage, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(93, 93, 93))
+                .addGap(133, 133, 133))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -175,7 +208,8 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
                 .addGap(0, 0, 0)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonNextPage)
-                    .addComponent(jButtonPreviousPage)))
+                    .addComponent(jButtonPreviousPage))
+                .addGap(0, 0, 0))
         );
 
         pack();
@@ -191,8 +225,16 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
 
     private void jEditorPane1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jEditorPane1MouseClicked
         // TODO add your handling code here:
-        if (entered) {
-            System.out.println("se clicado en el enlace " + linkDescription);
+        if (enteredLink) {
+            System.out.println("se clicado en el enlace " + userLink);
+            
+            int option = JOptionPane.showConfirmDialog(this, "Desea seguir al usuario " + userLink, "Confirmación", JOptionPane.OK_CANCEL_OPTION);
+            
+            if (option == JOptionPane.OK_OPTION) {
+                insertFollows(userLink);
+            }
+            
+            
         } else {
             System.out.println("NO se clicado en el enlace");
 
@@ -213,7 +255,8 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
 
     private void jMenuItemVerTodosMensajesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemVerTodosMensajesActionPerformed
         page = 1;
-        update();
+        currentDisplay = Main.ALLTWEETS;
+        updateAll();
 
     }//GEN-LAST:event_jMenuItemVerTodosMensajesActionPerformed
 
@@ -225,6 +268,31 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
         System.out.println(page);
 
     }//GEN-LAST:event_jButtonNextPageActionPerformed
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        // TODO add your handling code here:
+        SearchUser searchUserGUI = new SearchUser(this, true);
+        searchUserGUI.setVisible(true);
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void jMenuItemVerMensajesDeLosQueSigoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemVerMensajesDeLosQueSigoActionPerformed
+        // TODO add your handling code here:
+        currentDisplay = Main.FOLLOWSTWEETS;
+        updateAll();
+    }//GEN-LAST:event_jMenuItemVerMensajesDeLosQueSigoActionPerformed
+
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+        // TODO add your handling code here:
+        String hashtag = JOptionPane.showInputDialog(this, "Introdizca el hashtag a buscar", "Buscar hashtag", JOptionPane.OK_CANCEL_OPTION);
+
+        if (hashtag != null) {
+            currentDisplay = Main.HASHTAGSEARCH;
+            searchHashTag = hashtag;
+            updateAll();
+        }
+
+
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -247,12 +315,15 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
 
         StringBuilder html = new StringBuilder();
 
+        html.append("<!DOCTYPE html>\n"
+                + "<html>\n"
+                + "\n"
+                + "<body style=\"background-color: #e6f3ff; padding-left: 10px; padding: 10px;\">");
+
         DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
 
-        
-        
-        try (DBCursor cursor = colMensaje.find().sort(new BasicDBObject().append("date", -1)).skip((page-1)*5).limit(5)) {
-            
+        try (DBCursor cursor = colMensaje.find().sort(new BasicDBObject().append("date", -1)).skip((page - 1) * 5).limit(5)) {
+
             while (cursor.hasNext()) {
                 DBObject documento = cursor.next();
                 DBObject userObject = (DBObject) documento.get("user");
@@ -265,38 +336,198 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
             }
         }
 
+        html.append("</body>\n"
+                + "</html>");
+        return html.toString();
+    }
+
+    private String getFollowsTweets() {
+
+        StringBuilder html = new StringBuilder();
+
+        html.append("<!DOCTYPE html>\n"
+                + "<html>\n"
+                + "\n"
+                + "<body style=\"background-color: #e6f3ff; padding-left: 10px; padding: 10px;\">");
+
+        DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+
+        Bson filter = Filters.in("user.username", follows);
+
+        DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
+
+        try (DBCursor cursor = colMensaje.find(query).sort(new BasicDBObject().append("date", -1)).skip((page - 1) * 5).limit(5)) {
+
+            while (cursor.hasNext()) {
+                DBObject documento = cursor.next();
+                DBObject userObject = (DBObject) documento.get("user");
+                html.append(tweetBuilder(
+                        userObject.get("nome").toString(),
+                        userObject.get("username").toString(),
+                        documento.get("text").toString(),
+                        documento.get("date").toString()));
+
+            }
+        }
+
+        html.append("</body>\n"
+                + "</html>");
+
+        return html.toString();
+
+    }
+
+    private String getUserTweets(String user) {
+
+        StringBuilder html = new StringBuilder();
+
+        html.append("<!DOCTYPE html>\n"
+                + "<html>\n"
+                + "\n"
+                + "<body style=\"background-color: #e6f3ff; padding-left: 10px; padding: 10px;\">");
+
+        DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+
+        Bson filter = Filters.eq("user.username", user);
+
+        DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
+
+        try (DBCursor cursor = colMensaje.find(query).sort(new BasicDBObject().append("date", -1)).skip((page - 1) * 5).limit(5)) {
+
+            while (cursor.hasNext()) {
+                DBObject documento = cursor.next();
+                DBObject userObject = (DBObject) documento.get("user");
+                html.append(tweetBuilder(
+                        userObject.get("nome").toString(),
+                        userObject.get("username").toString(),
+                        documento.get("text").toString(),
+                        documento.get("date").toString()));
+
+            }
+        }
+
+        html.append("</body>\n"
+                + "</html>");
+        return html.toString();
+    }
+
+    private String getHashtagTweets(String searchHashTag) {
+
+        StringBuilder html = new StringBuilder();
+
+        html.append("<!DOCTYPE html>\n"
+                + "<html>\n"
+                + "\n"
+                + "<body style=\"background-color: #e6f3ff; padding-left: 10px; padding: 10px;\">");
+
+        DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+
+        Bson filter = Filters.eq("hashtags", searchHashTag);
+
+        DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
+
+        try (DBCursor cursor = colMensaje.find(query).sort(new BasicDBObject().append("date", -1)).skip((page - 1) * 5).limit(5)) {
+
+            while (cursor.hasNext()) {
+                DBObject documento = cursor.next();
+                DBObject userObject = (DBObject) documento.get("user");
+                html.append(tweetBuilder(
+                        userObject.get("nome").toString(),
+                        userObject.get("username").toString(),
+                        documento.get("text").toString(),
+                        documento.get("date").toString()));
+
+            }
+        }
+
+        html.append("</body>\n"
+                + "</html>");
+
         return html.toString();
     }
 
     private String tweetBuilder(String name, String username, String text, String date) {
-        return "<h3>\n"
-                + "	<strong> \n"
-                + "		" + name + " @" + username + " \n"
-                + "	</strong>\n"
-                + "</h3>\n"
-                + "<p>\n"
-                + "	" + text + "\n"
-                + "</p>\n"
-                + "<p>\n"
-                + "	" + date + " CET\n"
-                + "</p>\n"
-                + "	<a href=\"@" + username + "\">Seguir a @" + username + "</a>\n"
-                + "<p>\n"
-                + "	&nbsp;\n"
+        return "<p style=\"font-size: 12px; font-weight: bold; font-family: georgia;\">" + name + " " + "<a href=\"@" + username + "\">@" + username + "</a>"
+                + "</p>"
+                + "<p>&nbsp;"
+                + "</p>"
+                + "<p style=\"font-size: 12px; font-family: georgia;\">" + text
+                + "</p>"
+                + "<p style=\"text-align: right; color: #708090;\">" + date + " CET"
+                + "</p>"
+                + "<p>&nbsp;"
+                + "</p>"
+                + "<p>&nbsp;"
                 + "</p>";
 
     }
 
     void updateTweets() {
-        this.jEditorPane1.setText(getAllTweets());
+        switch (currentDisplay) {
+            case Main.ALLTWEETS:
+                this.jEditorPane1.setText(getAllTweets());
+                break;
+            case Main.FOLLOWSTWEETS:
+                this.jEditorPane1.setText(getFollowsTweets());
+                break;
+            case Main.USERTWEETS:
+                this.jEditorPane1.setText(getUserTweets(searchUser));
+                break;
+            case Main.HASHTAGSEARCH:
+                this.jEditorPane1.setText(getHashtagTweets(searchHashTag));
+            default:
+                break;
+        }
+
     }
 
     private void setPages() {
-        DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
-        try (DBCursor cursor = colMensaje.find()) {
-            totalPages = (int) ((cursor.count() - 1) / 5) + 1;
-            System.out.println("El total de tweets es " + cursor.count() + " y el total de páginas es " + totalPages);
-            page = 1;
+
+        switch (currentDisplay) {
+            case Main.ALLTWEETS: {
+                DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+                try (DBCursor cursor = colMensaje.find()) {
+                    totalPages = (int) ((cursor.count() - 1) / 5) + 1;
+                    System.out.println("El total de tweets es " + cursor.count() + " y el total de páginas es " + totalPages);
+                    page = 1;
+                }
+                break;
+            }
+            case Main.FOLLOWSTWEETS: {
+                DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+                Bson filter = Filters.in("user.username", follows);
+                DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
+                try (DBCursor cursor = colMensaje.find(query)) {
+                    totalPages = (int) ((cursor.count() - 1) / 5) + 1;
+                    System.out.println("El total de tweets de los que sigues es " + cursor.count() + " y el total de páginas es " + totalPages);
+                    page = 1;
+                }
+                break;
+            }
+            case Main.USERTWEETS: {
+                DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+                Bson filter = Filters.eq("user.username", user);
+                DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
+                try (DBCursor cursor = colMensaje.find(query)) {
+                    totalPages = (int) ((cursor.count() - 1) / 5) + 1;
+                    System.out.println("El total de tweets el un usuario es " + cursor.count() + " y el total de páginas es " + totalPages);
+                    page = 1;
+                }
+            }
+            case Main.HASHTAGSEARCH: {
+                DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaje");
+                Bson filter = Filters.eq("hashtags", this.searchHashTag);
+                DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
+                try (DBCursor cursor = colMensaje.find(query)) {
+                    totalPages = (int) ((cursor.count() - 1) / 5) + 1;
+                    System.out.println("El total de tweets con un hashtag es " + cursor.count() + " y el total de páginas es " + totalPages);
+                    page = 1;
+                }
+
+            }
+            break;
+            default:
+                break;
         }
 
     }
@@ -307,7 +538,7 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
         } else {
             this.jButtonPreviousPage.setEnabled(true);
         }
-        
+
         if (page == totalPages) {
             this.jButtonNextPage.setEnabled(false);
         } else {
@@ -315,8 +546,9 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
         }
 
     }
-    
-    public void update(){
+
+    public void updateAll() {
+
         setPages();
         updateTweets();
         updatePageButtons();
@@ -325,13 +557,40 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
     @Override
     public void hyperlinkUpdate(HyperlinkEvent e) {
         JEditorPane pane = (JEditorPane) e.getSource();
-        linkDescription = e.getDescription();
+        userLink = e.getDescription();
         if (e.getEventType() == HyperlinkEvent.EventType.ENTERED) {
-            entered = true;
+            enteredLink = true;
         } else if (e.getEventType() == HyperlinkEvent.EventType.EXITED) {
-            entered = false;
+            enteredLink = false;
         }
     }
+
+    private List<String> getFollows() {
+
+        DBCollection colUsuario = login.getApp().getDatabase().getCollection("usuario");
+
+        DBObject query = new BasicDBObject("username", user);
+
+        DBObject document = colUsuario.findOne(query);
+
+        return follows = (List<String>) document.get("follows");
+
+    }
+    
+    private void insertFollows(String userLink) {
+        
+        DBCollection colUsuario = login.getApp().getDatabase().getCollection("usuario");
+        
+        Bson filterUp = Filters.eq("username", user);
+        DBObject queryUp = new BasicDBObject(filterUp.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
+
+        Bson updateAux = Updates.addToSet("follows", userLink.replace("@", ""));
+        DBObject update = new BasicDBObject(updateAux.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
+
+        colUsuario.update(queryUp, update);
+        
+    }
+    
 
     @Override
     public void windowOpened(WindowEvent e) {
@@ -371,5 +630,15 @@ public class Main extends javax.swing.JFrame implements HyperlinkListener, Windo
     public String getUser() {
         return user;
     }
+
+    public void setSearchUser(String searchUser) {
+        this.searchUser = searchUser;
+    }
+
+    public void setCurrentDisplay(int currentDisplay) {
+        this.currentDisplay = currentDisplay;
+    }
+
+    
 
 }

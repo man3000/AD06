@@ -101,7 +101,7 @@ public class NewTweet extends javax.swing.JDialog {
         // TODO add your handling code here:
         
         this.login.getApp().insertTweet(main.getUser() ,this.jTextArea1.getText());
-        this.main.update();
+        this.main.updateAll();
         this.dispose();
     }//GEN-LAST:event_jButtonSendMessageActionPerformed
 

@@ -33,6 +33,9 @@ public class Login extends javax.swing.JFrame {
         this.setLocation(x - this.getWidth() / 2, y - this.getHeight() / 2);
 
         this.jLabelLoginIncorrecto.setVisible(false);
+        
+        this.jTextFieldUsuario.setText("manu");
+        this.jPasswordFieldPass.setText("abc123.");
     }
 
     /**
