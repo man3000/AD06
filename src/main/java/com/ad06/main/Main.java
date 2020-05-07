@@ -13,6 +13,7 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.List;
@@ -23,6 +24,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 /**
  *
@@ -216,7 +218,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonPreviousPageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPreviousPageActionPerformed
-        // TODO add your handling code here:
+
         page--;
         updateTweets();
         updatePageButtons();
@@ -224,21 +226,29 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
     }//GEN-LAST:event_jButtonPreviousPageActionPerformed
 
     private void jEditorPane1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jEditorPane1MouseClicked
-        // TODO add your handling code here:
-        if (enteredLink) {
-            System.out.println("se clicado en el enlace " + userLink);
 
-            int option = JOptionPane.showConfirmDialog(this, "Desea seguir al usuario " + userLink, "Confirmación", JOptionPane.OK_CANCEL_OPTION);
+        if (evt.getButton() == MouseEvent.BUTTON1) {
+            if (enteredLink) {
 
-            if (option == JOptionPane.OK_OPTION) {
-                insertFollows(userLink);
-                this.follows = getFollows();
+                if (userFollows()) {
+                    JOptionPane.showMessageDialog(this, "Ya sigues al usuario " + userLink, "Información", JOptionPane.OK_OPTION);
+                } else if (userLink.replace("@", "").equals(user)) {
+                    JOptionPane.showMessageDialog(this, "Prueba a seguir a otro usuario mejor ", "Información", JOptionPane.OK_OPTION);
+                } else {
+                    int option = JOptionPane.showConfirmDialog(this, "Desea seguir al usuario " + userLink, "Confirmación", JOptionPane.OK_CANCEL_OPTION);
+
+                    if (option == JOptionPane.OK_OPTION) {
+                        insertFollows(userLink);
+                        this.follows = getFollows();
+
+                    }
+
+                }
+
+            } else {
+                System.out.println("NO se clicado en el enlace");
 
             }
-
-        } else {
-            System.out.println("NO se clicado en el enlace");
-
         }
     }//GEN-LAST:event_jEditorPane1MouseClicked
 
@@ -294,7 +304,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
 
         if (hashtag != null) {
             currentDisplay = Main.HASHTAGSEARCH;
-            searchHashTag = hashtag;
+            searchHashTag = hashtag.replace("#", "");
             updateAll();
         }
 
@@ -321,6 +331,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
     private String getAllTweets() {
 
         StringBuilder html = new StringBuilder();
+        ObjectId objectId;
 
         html.append("<!DOCTYPE html>\n"
                 + "<html>\n"
@@ -329,16 +340,17 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
 
         DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaxe");
 
-        try (DBCursor cursor = colMensaje.find().sort(new BasicDBObject().append("date", -1)).skip((page - 1) * 5).limit(5)) {
+        try (DBCursor cursor = colMensaje.find().sort(new BasicDBObject().append("_id", -1)).skip((page - 1) * 5).limit(5)) {
 
             while (cursor.hasNext()) {
                 DBObject documento = cursor.next();
+                objectId = (ObjectId) documento.get("_id");
                 DBObject userObject = (DBObject) documento.get("user");
                 html.append(tweetBuilder(
                         userObject.get("nome").toString(),
                         userObject.get("username").toString(),
                         documento.get("text").toString(),
-                        documento.get("date").toString()));
+                        objectId.getDate().toString()));
 
             }
         }
@@ -351,6 +363,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
     private String getFollowsTweets() {
 
         StringBuilder html = new StringBuilder();
+        ObjectId objectId;
 
         html.append("<!DOCTYPE html>\n"
                 + "<html>\n"
@@ -363,16 +376,18 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
 
         DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
 
-        try (DBCursor cursor = colMensaje.find(query).sort(new BasicDBObject().append("date", -1)).skip((page - 1) * 5).limit(5)) {
+        try (DBCursor cursor = colMensaje.find(query).sort(new BasicDBObject().append("_id", -1)).skip((page - 1) * 5).limit(5)) {
 
             while (cursor.hasNext()) {
                 DBObject documento = cursor.next();
+                objectId = (ObjectId) documento.get("_id");
+
                 DBObject userObject = (DBObject) documento.get("user");
                 html.append(tweetBuilder(
                         userObject.get("nome").toString(),
                         userObject.get("username").toString(),
                         documento.get("text").toString(),
-                        documento.get("date").toString()));
+                        objectId.getDate().toString()));
 
             }
         }
@@ -388,6 +403,8 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
 
         StringBuilder html = new StringBuilder();
 
+        ObjectId objectId;
+
         html.append("<!DOCTYPE html>\n"
                 + "<html>\n"
                 + "\n"
@@ -399,16 +416,18 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
 
         DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
 
-        try (DBCursor cursor = colMensaje.find(query).sort(new BasicDBObject().append("date", -1)).skip((page - 1) * 5).limit(5)) {
+        try (DBCursor cursor = colMensaje.find(query).sort(new BasicDBObject().append("_id", -1)).skip((page - 1) * 5).limit(5)) {
 
             while (cursor.hasNext()) {
                 DBObject documento = cursor.next();
+                objectId = (ObjectId) documento.get("_id");
+
                 DBObject userObject = (DBObject) documento.get("user");
                 html.append(tweetBuilder(
                         userObject.get("nome").toString(),
                         userObject.get("username").toString(),
                         documento.get("text").toString(),
-                        documento.get("date").toString()));
+                        objectId.getDate().toString()));
 
             }
         }
@@ -421,6 +440,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
     private String getHashtagTweets(String searchHashTag) {
 
         StringBuilder html = new StringBuilder();
+        ObjectId objectId;
 
         html.append("<!DOCTYPE html>\n"
                 + "<html>\n"
@@ -433,16 +453,18 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
 
         DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
 
-        try (DBCursor cursor = colMensaje.find(query).sort(new BasicDBObject().append("date", -1)).skip((page - 1) * 5).limit(5)) {
+        try (DBCursor cursor = colMensaje.find(query).sort(new BasicDBObject().append("_id", -1)).skip((page - 1) * 5).limit(5)) {
 
             while (cursor.hasNext()) {
                 DBObject documento = cursor.next();
+                objectId = (ObjectId) documento.get("_id");
+
                 DBObject userObject = (DBObject) documento.get("user");
                 html.append(tweetBuilder(
                         userObject.get("nome").toString(),
                         userObject.get("username").toString(),
-                        documento.get("text").toString(),
-                        documento.get("date").toString()));
+                        documento.get("text").toString().replace("#" + searchHashTag, "<strong style=\"background-color: #ff4d4d;\">" + "#" + searchHashTag + "</strong>"),
+                        objectId.getDate().toString()));
 
             }
         }
@@ -460,7 +482,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                 + "</p>"
                 + "<p style=\"font-size: 12px; font-family: georgia;\">" + text
                 + "</p>"
-                + "<p style=\"text-align: right; color: #708090;\">" + date + " CET"
+                + "<p style=\"text-align: right; color: #708090;\">" + date
                 + "</p>"
                 + "<p>&nbsp;"
                 + "</p>"
@@ -596,6 +618,19 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
 
         colUsuario.update(queryUp, update);
 
+    }
+
+    public boolean userFollows() {
+
+        DBCollection colUsuario = this.login.getApp().getDatabase().getCollection("usuario");
+
+        Bson filter = Filters.and(Filters.eq("username", user), Filters.eq("follows", userLink.replace("@", "")));
+
+        DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
+
+        try (DBCursor cursor = colUsuario.find(query)) {
+            return cursor.count() != 0;
+        }
     }
 
     @Override

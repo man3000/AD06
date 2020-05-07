@@ -15,8 +15,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -151,17 +149,17 @@ public class App {
 
         String name;
         ArrayList<String> hashtags = new ArrayList<>();
-        String date;
-
+        /*String date;
+        
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyy HH:mm");
         LocalDateTime now = LocalDateTime.now();
-        date = dtf.format(now);
+        date = dtf.format(now);*/
 
-        Pattern pattern = Pattern.compile("#\\w*");
+        Pattern pattern = Pattern.compile("#\\S*");
         Matcher matcher = pattern.matcher(tweetText);
 
         while (matcher.find()) {
-            hashtags.add(matcher.group());
+            hashtags.add(matcher.group().replace("#", ""));
         }
 
         DBCollection colMensaje = database.getCollection("mensaxe");
