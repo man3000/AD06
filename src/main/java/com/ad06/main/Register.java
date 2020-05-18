@@ -9,6 +9,7 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.util.Arrays;
 import java.util.regex.Pattern;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -34,6 +35,8 @@ public class Register extends javax.swing.JDialog {
         this.login = (Login) parent;
 
         initComponents();
+        ImageIcon icon = new javax.swing.ImageIcon(getClass().getResource("/iconWindow.png"));
+        this.setIconImage(icon.getImage());
 
         Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
         int x = d.width / 2;
@@ -66,7 +69,7 @@ public class Register extends javax.swing.JDialog {
         jLabelPassRepeat = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("mini - twitter ");
+        setTitle("mini - twitter (Registro)");
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
         jButtonRegistrarse.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N

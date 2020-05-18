@@ -16,7 +16,11 @@ import com.mongodb.client.model.Updates;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import javax.swing.ImageIcon;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -63,9 +67,11 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         this.user = user;
 
         this.follows = getFollows();
-        System.out.println("A los que sigue son " + follows);
+        //System.out.println("A los que sigue son " + follows);
 
         initComponents();
+        ImageIcon icon = new javax.swing.ImageIcon(getClass().getResource("/iconWindow.png"));
+        this.setIconImage(icon.getImage());
 
         this.currentDisplay = Main.ALLTWEETS;
 
@@ -103,6 +109,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         jMenuMensajes = new javax.swing.JMenu();
         jMenuItemVerTodosMensajes = new javax.swing.JMenuItem();
         jMenuItemVerMensajesDeLosQueSigo = new javax.swing.JMenuItem();
+        jMenuItemVerMisMensajes = new javax.swing.JMenuItem();
         jMenuItemRedactarMensaje = new javax.swing.JMenuItem();
         jMenuItemSalir = new javax.swing.JMenuItem();
         jMenuBuscar = new javax.swing.JMenu();
@@ -110,6 +117,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         jMenuItem2 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("mini - tweeter (Ventana Principal)");
         setResizable(false);
 
         jEditorPane1.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -134,7 +142,11 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         });
 
         jMenuMensajes.setText("Mensajes");
+        jMenuMensajes.setToolTipText("Menú de mensajes");
+        jMenuMensajes.setFont(new java.awt.Font("Arial", 0, 18)); // NOI18N
 
+        jMenuItemVerTodosMensajes.setFont(new java.awt.Font("Arial", 0, 18)); // NOI18N
+        jMenuItemVerTodosMensajes.setIcon(new javax.swing.ImageIcon(getClass().getResource("/allMessages.png"))); // NOI18N
         jMenuItemVerTodosMensajes.setText("Ver todos los mensajes");
         jMenuItemVerTodosMensajes.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -143,6 +155,8 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         });
         jMenuMensajes.add(jMenuItemVerTodosMensajes);
 
+        jMenuItemVerMensajesDeLosQueSigo.setFont(new java.awt.Font("Arial", 0, 18)); // NOI18N
+        jMenuItemVerMensajesDeLosQueSigo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/userFollowsMessages.png"))); // NOI18N
         jMenuItemVerMensajesDeLosQueSigo.setText("Ver los mensajes de las personas que sigo");
         jMenuItemVerMensajesDeLosQueSigo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -151,6 +165,18 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         });
         jMenuMensajes.add(jMenuItemVerMensajesDeLosQueSigo);
 
+        jMenuItemVerMisMensajes.setFont(new java.awt.Font("Arial", 0, 18)); // NOI18N
+        jMenuItemVerMisMensajes.setIcon(new javax.swing.ImageIcon(getClass().getResource("/userMessages.png"))); // NOI18N
+        jMenuItemVerMisMensajes.setText("Ver todos mis mensajes");
+        jMenuItemVerMisMensajes.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemVerMisMensajesActionPerformed(evt);
+            }
+        });
+        jMenuMensajes.add(jMenuItemVerMisMensajes);
+
+        jMenuItemRedactarMensaje.setFont(new java.awt.Font("Arial", 0, 18)); // NOI18N
+        jMenuItemRedactarMensaje.setIcon(new javax.swing.ImageIcon(getClass().getResource("/writeMessage.png"))); // NOI18N
         jMenuItemRedactarMensaje.setText("Redactar un mensaje");
         jMenuItemRedactarMensaje.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -159,6 +185,8 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         });
         jMenuMensajes.add(jMenuItemRedactarMensaje);
 
+        jMenuItemSalir.setFont(new java.awt.Font("Arial", 0, 18)); // NOI18N
+        jMenuItemSalir.setIcon(new javax.swing.ImageIcon(getClass().getResource("/salir.png"))); // NOI18N
         jMenuItemSalir.setText("Salir");
         jMenuItemSalir.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -170,7 +198,10 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         jMenuBar1.add(jMenuMensajes);
 
         jMenuBuscar.setText("Buscar");
+        jMenuBuscar.setFont(new java.awt.Font("Arial", 0, 18)); // NOI18N
 
+        jMenuItem1.setFont(new java.awt.Font("Arial", 0, 18)); // NOI18N
+        jMenuItem1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/searchUser.png"))); // NOI18N
         jMenuItem1.setText("Buscar persona");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -179,6 +210,8 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         });
         jMenuBuscar.add(jMenuItem1);
 
+        jMenuItem2.setFont(new java.awt.Font("Arial", 0, 18)); // NOI18N
+        jMenuItem2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hashtag.png"))); // NOI18N
         jMenuItem2.setText("Buscar #hashtag");
         jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -195,23 +228,22 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(132, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 405, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(133, 133, 133)
                 .addComponent(jButtonPreviousPage, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(jButtonNextPage, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(133, 133, 133))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 596, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 640, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonNextPage)
-                    .addComponent(jButtonPreviousPage))
-                .addGap(0, 0, 0))
+                    .addComponent(jButtonPreviousPage)))
         );
 
         pack();
@@ -222,7 +254,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         page--;
         updateTweets();
         updatePageButtons();
-        System.out.println(page);
+        //System.out.println(page);
     }//GEN-LAST:event_jButtonPreviousPageActionPerformed
 
     private void jEditorPane1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jEditorPane1MouseClicked
@@ -231,7 +263,15 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
             if (enteredLink) {
 
                 if (userFollows()) {
-                    JOptionPane.showMessageDialog(this, "Ya sigues al usuario " + userLink, "Información", JOptionPane.OK_OPTION);
+                    int option = JOptionPane.showConfirmDialog(this, "Ya sigue al usuario "+ userLink +", ¿desea dejar de seguirlo?", "Confirmación", JOptionPane.OK_CANCEL_OPTION);
+
+                    if (option == JOptionPane.OK_OPTION) {
+                        deleteFollows(userLink);
+                        this.follows = getFollows();
+                        updateAll();
+                        enteredLink = false;
+
+                    }
                 } else if (userLink.replace("@", "").equals(user)) {
                     JOptionPane.showMessageDialog(this, "Prueba a seguir a otro usuario mejor ", "Información", JOptionPane.OK_OPTION);
                 } else {
@@ -246,7 +286,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                 }
 
             } else {
-                System.out.println("NO se clicado en el enlace");
+                //System.out.println("NO se clicado en el enlace");
 
             }
         }
@@ -276,7 +316,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         page++;
         updateTweets();
         updatePageButtons();
-        System.out.println(page);
+        //System.out.println(page);
 
     }//GEN-LAST:event_jButtonNextPageActionPerformed
 
@@ -300,7 +340,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
 
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
         // TODO add your handling code here:
-        String hashtag = JOptionPane.showInputDialog(this, "Introdizca el hashtag a buscar", "Buscar hashtag", JOptionPane.OK_CANCEL_OPTION);
+        String hashtag = JOptionPane.showInputDialog(this, "Introduzca el hashtag a buscar", "Buscar hashtag", JOptionPane.OK_CANCEL_OPTION);
 
         if (hashtag != null) {
             currentDisplay = Main.HASHTAGSEARCH;
@@ -310,6 +350,13 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
 
 
     }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void jMenuItemVerMisMensajesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemVerMisMensajesActionPerformed
+        // TODO add your handling code here:
+        setSearchUser(this.user);
+        currentDisplay = Main.USERTWEETS;
+        updateAll();
+    }//GEN-LAST:event_jMenuItemVerMisMensajesActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -323,6 +370,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
     private javax.swing.JMenuItem jMenuItemRedactarMensaje;
     private javax.swing.JMenuItem jMenuItemSalir;
     private javax.swing.JMenuItem jMenuItemVerMensajesDeLosQueSigo;
+    private javax.swing.JMenuItem jMenuItemVerMisMensajes;
     private javax.swing.JMenuItem jMenuItemVerTodosMensajes;
     private javax.swing.JMenu jMenuMensajes;
     private javax.swing.JScrollPane jScrollPane1;
@@ -333,10 +381,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         StringBuilder html = new StringBuilder();
         ObjectId objectId;
 
-        html.append("<!DOCTYPE html>\n"
-                + "<html>\n"
-                + "\n"
-                + "<body style=\"background-color: #e6f3ff; padding-left: 10px; padding: 10px;\">");
+        html.append(tweetHeader());
 
         DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaxe");
 
@@ -350,7 +395,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                         userObject.get("nome").toString(),
                         userObject.get("username").toString(),
                         documento.get("text").toString(),
-                        objectId.getDate().toString()));
+                        dateFormatter(objectId.getDate())));
 
             }
         }
@@ -365,10 +410,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         StringBuilder html = new StringBuilder();
         ObjectId objectId;
 
-        html.append("<!DOCTYPE html>\n"
-                + "<html>\n"
-                + "\n"
-                + "<body style=\"background-color: #e6f3ff; padding-left: 10px; padding: 10px;\">");
+        html.append(tweetHeader());
 
         DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaxe");
 
@@ -387,7 +429,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                         userObject.get("nome").toString(),
                         userObject.get("username").toString(),
                         documento.get("text").toString(),
-                        objectId.getDate().toString()));
+                        dateFormatter(objectId.getDate())));
 
             }
         }
@@ -405,10 +447,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
 
         ObjectId objectId;
 
-        html.append("<!DOCTYPE html>\n"
-                + "<html>\n"
-                + "\n"
-                + "<body style=\"background-color: #e6f3ff; padding-left: 10px; padding: 10px;\">");
+        html.append(tweetHeader());
 
         DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaxe");
 
@@ -427,7 +466,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                         userObject.get("nome").toString(),
                         userObject.get("username").toString(),
                         documento.get("text").toString(),
-                        objectId.getDate().toString()));
+                        dateFormatter(objectId.getDate())));
 
             }
         }
@@ -442,10 +481,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         StringBuilder html = new StringBuilder();
         ObjectId objectId;
 
-        html.append("<!DOCTYPE html>\n"
-                + "<html>\n"
-                + "\n"
-                + "<body style=\"background-color: #e6f3ff; padding-left: 10px; padding: 10px;\">");
+        html.append(tweetHeader());
 
         DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaxe");
 
@@ -464,7 +500,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                         userObject.get("nome").toString(),
                         userObject.get("username").toString(),
                         documento.get("text").toString().replace("#" + searchHashTag, "<strong style=\"background-color: #ff4d4d;\">" + "#" + searchHashTag + "</strong>"),
-                        objectId.getDate().toString()));
+                        dateFormatter(objectId.getDate())));
 
             }
         }
@@ -489,6 +525,37 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                 + "<p>&nbsp;"
                 + "</p>";
 
+    }
+
+    private String tweetHeader() {
+
+        String header;
+
+        switch (currentDisplay) {
+            case Main.ALLTWEETS:
+                header = "Mostrando todo los mensajes";
+                break;
+            case Main.FOLLOWSTWEETS:
+                header = "Mostrando los mensajes de los que sigo";
+                break;
+            case Main.USERTWEETS:
+                header = "Mostrando los mensajes de @" + searchUser;
+                break;
+            case Main.HASHTAGSEARCH:
+                header = "Mostrando los mensajes que contengan #" + searchHashTag;
+                break;
+            default:
+                header = "";
+        }
+
+        return "<!DOCTYPE html>\n"
+                + "<html>\n"
+                + "\n"
+                + "<body style=\"background-color: #e6f3ff; padding-left: 10px; padding: 10px;\">"
+                + "<p style=\"font-size: 14px; font-family: georgia; text-align: center;\">" + header + "</p>"
+                + "<p style=\"font-size: 14px; font-family: georgia; text-align: center;\">Página " + page +"/"+totalPages+ "</p>"
+                + "<p>&nbsp;"
+                + "</p>";
     }
 
     void updateTweets() {
@@ -517,7 +584,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                 DBCollection colMensaje = this.login.getApp().getDatabase().getCollection("mensaxe");
                 try (DBCursor cursor = colMensaje.find()) {
                     totalPages = (int) ((cursor.count() - 1) / 5) + 1;
-                    System.out.println("El total de tweets es " + cursor.count() + " y el total de páginas es " + totalPages);
+                    //System.out.println("El total de tweets es " + cursor.count() + " y el total de páginas es " + totalPages);
                     page = 1;
                 }
                 break;
@@ -528,7 +595,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                 DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
                 try (DBCursor cursor = colMensaje.find(query)) {
                     totalPages = (int) ((cursor.count() - 1) / 5) + 1;
-                    System.out.println("El total de tweets de los que sigues es " + cursor.count() + " y el total de páginas es " + totalPages);
+                    //System.out.println("El total de tweets de los que sigues es " + cursor.count() + " y el total de páginas es " + totalPages);
                     page = 1;
                 }
                 break;
@@ -539,7 +606,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                 DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
                 try (DBCursor cursor = colMensaje.find(query)) {
                     totalPages = (int) ((cursor.count() - 1) / 5) + 1;
-                    System.out.println("El total de tweets el un usuario es " + cursor.count() + " y el total de páginas es " + totalPages);
+                    //System.out.println("El total de tweets el un usuario es " + cursor.count() + " y el total de páginas es " + totalPages);
                     page = 1;
                 }
             }
@@ -549,7 +616,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
                 DBObject query = new BasicDBObject(filter.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
                 try (DBCursor cursor = colMensaje.find(query)) {
                     totalPages = (int) ((cursor.count() - 1) / 5) + 1;
-                    System.out.println("El total de tweets con un hashtag es " + cursor.count() + " y el total de páginas es " + totalPages);
+                    //System.out.println("El total de tweets con un hashtag es " + cursor.count() + " y el total de páginas es " + totalPages);
                     page = 1;
                 }
 
@@ -587,6 +654,7 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
     public void hyperlinkUpdate(HyperlinkEvent e) {
         JEditorPane pane = (JEditorPane) e.getSource();
         userLink = e.getDescription();
+        System.out.println(userLink);
         if (e.getEventType() == HyperlinkEvent.EventType.ENTERED) {
             enteredLink = true;
         } else if (e.getEventType() == HyperlinkEvent.EventType.EXITED) {
@@ -619,6 +687,20 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         colUsuario.update(queryUp, update);
 
     }
+    
+    private void deleteFollows(String userLink) {
+
+        DBCollection colUsuario = login.getApp().getDatabase().getCollection("usuario");
+
+        Bson filterUp = Filters.eq("username", user);
+        DBObject queryUp = new BasicDBObject(filterUp.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
+
+        Bson updateAux = Updates.pull("follows", userLink.replace("@", ""));
+        DBObject update = new BasicDBObject(updateAux.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry()));
+
+        colUsuario.update(queryUp, update);
+
+    }
 
     public boolean userFollows() {
 
@@ -631,6 +713,11 @@ public final class Main extends javax.swing.JFrame implements HyperlinkListener,
         try (DBCursor cursor = colUsuario.find(query)) {
             return cursor.count() != 0;
         }
+    }
+
+    public String dateFormatter(Date date) {
+        return DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.SHORT, Locale.getDefault(Locale.Category.DISPLAY)).format(date);
+
     }
 
     @Override

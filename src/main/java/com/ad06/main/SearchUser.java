@@ -13,6 +13,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.model.Filters;
 import java.util.ArrayList;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
 
@@ -33,6 +34,8 @@ public class SearchUser extends javax.swing.JDialog {
     public SearchUser(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        ImageIcon icon = new javax.swing.ImageIcon(getClass().getResource("/iconWindow.png"));
+        this.setIconImage(icon.getImage());
         this.setLocation(parent.getLocation());
         this.main = (Main) parent;
         this.login = main.getLogin();
@@ -55,6 +58,7 @@ public class SearchUser extends javax.swing.JDialog {
         jButtonVerMensajes = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("mini - tweeter (Buscar Usuarios)");
 
         jListUsuarios.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jListUsuarios.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);

@@ -6,7 +6,10 @@
 package com.ad06.main;
 
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
+import javax.swing.ImageIcon;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
@@ -26,6 +29,8 @@ public class Login extends javax.swing.JFrame {
     public Login(App app) {
         this.app = app;
         initComponents();
+        ImageIcon icon = new javax.swing.ImageIcon(getClass().getResource("/iconWindow.png"));
+        this.setIconImage(icon.getImage());
 
         Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
         int x = d.width / 2;
@@ -33,9 +38,9 @@ public class Login extends javax.swing.JFrame {
         this.setLocation(x - this.getWidth() / 2, y - this.getHeight() / 2);
 
         this.jLabelLoginIncorrecto.setVisible(false);
-        
-        this.jTextFieldUsuario.setText("maap");
-        this.jPasswordFieldPass.setText("abc123.");
+
+        /*this.jTextFieldUsuario.setText("maap");
+        this.jPasswordFieldPass.setText("abc123.");*/
     }
 
     /**
@@ -88,6 +93,11 @@ public class Login extends javax.swing.JFrame {
         jPasswordFieldPass.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jPasswordFieldPassActionPerformed(evt);
+            }
+        });
+        jPasswordFieldPass.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jPasswordFieldPassKeyPressed(evt);
             }
         });
 
@@ -168,6 +178,19 @@ public class Login extends javax.swing.JFrame {
         Register registro = new Register(this, true);
         registro.setVisible(true);
     }//GEN-LAST:event_jButtonRegistrarseActionPerformed
+
+    private void jPasswordFieldPassKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jPasswordFieldPassKeyPressed
+        // TODO add your handling code here:
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (app.authenticateUser(this.jTextFieldUsuario.getText(), new String(jPasswordFieldPass.getPassword()))) {
+                Main main = new Main(this, this.jTextFieldUsuario.getText());
+                main.setVisible(true);
+                this.setVisible(false);
+            } else {
+                this.jLabelLoginIncorrecto.setVisible(true);
+            }
+        }
+    }//GEN-LAST:event_jPasswordFieldPassKeyPressed
 
     public JTextField getjTextFieldUsuario() {
         return jTextFieldUsuario;

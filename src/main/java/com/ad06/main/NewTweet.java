@@ -5,6 +5,8 @@
  */
 package com.ad06.main;
 
+import javax.swing.ImageIcon;
+
 /**
  *
  * @author Manuel
@@ -21,6 +23,8 @@ public class NewTweet extends javax.swing.JDialog {
     public NewTweet(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        ImageIcon icon = new javax.swing.ImageIcon(getClass().getResource("/iconWindow.png"));
+        this.setIconImage(icon.getImage());
         this.setLocation(parent.getLocation());
         this.main = (Main) parent;
         this.login = main.getLogin();
@@ -36,12 +40,17 @@ public class NewTweet extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextPane1 = new javax.swing.JTextPane();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
         jButtonSendMessage = new javax.swing.JButton();
         jButtonExit = new javax.swing.JButton();
 
+        jScrollPane1.setViewportView(jTextPane1);
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("mini - tweeter (Escribir Mensaje)");
 
         jTextArea1.setColumns(20);
         jTextArea1.setFont(new java.awt.Font("Arial", 0, 18)); // NOI18N
@@ -150,7 +159,9 @@ public class NewTweet extends javax.swing.JDialog {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonExit;
     private javax.swing.JButton jButtonSendMessage;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JTextPane jTextPane1;
     // End of variables declaration//GEN-END:variables
 }
